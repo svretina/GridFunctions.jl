@@ -3,6 +3,10 @@ uuid = "28d702cb-9102-4da8-a82a-5023545b1c0c"
 authors = ["Stamatis Vretinaris"]
 version = "1.0.0-DEV"
 
+[deps]
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
 [compat]
 julia = "1.9"
 
