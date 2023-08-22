@@ -1,0 +1,13 @@
+name = "GridFunctions"
+uuid = "28d702cb-9102-4da8-a82a-5023545b1c0c"
+authors = ["Stamatis Vretinaris"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.9"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
