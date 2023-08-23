@@ -1,6 +1,9 @@
 module Domains
 
 using StaticArrays
+
+abstract type AbstractDomain end
+
 """
 Struct to hold information about the physical
 domain of the numerical grid.
@@ -9,20 +12,30 @@ domain of the numerical grid.
 - dmin: the minimum of the domain
 - dmax: the maximum of the domain
 """
-struct Domain{T<:Real}
+struct Domain{T<:Real} <: AbstractDomain
     domain::SVector{2,T}
     dmin::T
     dmax::T
 end
 
 ## Constructor overloading to calculate dims from domain array
-function Domain(dom::Vector{T})::Domain{T} where {T<:Real}
+"""
+    Domain(dom::Vector{T})::Domain{T} where {T<:Real}
+
+Constructor with a domain provided as AbstractVector
+"""
+function Domain(dom::AbstractVector{T})::Domain{T} where {T<:Real}
     @assert dom[1] < dom[2] || throw("Domain must be sorted from small to big.")
     dmin = min(dom[begin], dom[end])
     dmax = max(dom[begin], dom[end])
     return Domain(SVector{2}(dom), dmin, dmax)
 end
 
+"""
+    Domain(dom::SVector{2,T})::Domain{T} where {T<:Real}
+
+Constructor with a domain provided as StaticArrays' SVector
+"""
 function Domain(dom::SVector{2,T})::Domain{T} where {T<:Real}
     @assert dom[1] < dom[2] || throw("Domain must be sorted from small to big.")
     dmin = min(dom[begin], dom[end])
@@ -36,12 +49,20 @@ end
 
 import Base
 
-using StaticArrays
-
 function Base.convert(::Type{T}, dom::Domain)::Domain{T} where {T<:Real}
     Domain(convert.(T, dom.domain))
 end
 
+function Base.show(io::IO, d::Domain)
+    dump(d)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", d::Domain{T}) where {T}
+    println(Domain{T})
+    println("domain = $(typeof(d.domain)) $(d.domain)")
+end
+
+## 3D
 struct Domain3D{T<:Real}
     domain::SVector{3,Domain{T}}
     xmin::T
@@ -82,7 +103,7 @@ end
 end
 
 function Domain3D(::Type{T},
-                  dom::AbstractVector{Domain{S}})::Domain3D{T} where {T<:Real,S<:Real}
+    dom::AbstractVector{Domain{S}})::Domain3D{T} where {T<:Real,S<:Real}
     Domain3D(convert.(T, dom))
 end
 

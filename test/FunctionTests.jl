@@ -66,6 +66,15 @@ end
     @test length(GridFunctions.Functions.GridFunction(x, y)) == length(x)
 end
 
+@testset "gf_broadcastable" begin
+    x = [0, 1, 2, 3]
+    y = [2, 3, 4, 5]
+    gf = GridFunctions.Functions.GridFunction(x, y)
+    @test 2 * gf == 2 .* gf.y
+end
+
+
+
 # @testset "gf_tests_integrate" begin
 #     N = 10
 #     d = Domains.Domain([0, 10])
