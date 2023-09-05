@@ -7,7 +7,7 @@ const FTypes = [Float32, Float64]
 @testset "Grid_tests" begin
     dd = GridFunctions.Domains.Domain([0, 1])
     ncells = 10
-    gg = GridFunctions.Grids.Grid(dd, ncells)
+    gg = GridFunctions.Grids.UniformGrid(dd, ncells)
     @test gg.domain == dd
     @test length(gg) == ncells + 1
     @test gg.ncells == ncells
@@ -21,7 +21,7 @@ end
     L = 5
     dd = GridFunctions.Domains.Domain([0, L])
     ncells = 10
-    gg = GridFunctions.Grids.Grid(dd, ncells)
+    gg = GridFunctions.Grids.UniformGrid(dd, ncells)
     @test typeof(gg.ncells) <: Integer
     @test typeof(gg.npoints) <: Integer
     @test typeof(gg.domain) <: GridFunctions.Domains.Domain{<:Integer}
@@ -33,7 +33,7 @@ end
     L = Rational(5)
     dd = GridFunctions.Domains.Domain([0, L])
     ncells = 10
-    gg = GridFunctions.Grids.Grid(dd, ncells)
+    gg = GridFunctions.Grids.UniformGrid(dd, ncells)
     @test typeof(gg.ncells) <: Integer
     @test typeof(gg.npoints) <: Integer
     @test typeof(gg.domain) <: GridFunctions.Domains.Domain{<:Rational}
@@ -45,7 +45,7 @@ end
     L = 5.0
     dd = GridFunctions.Domains.Domain([0, L])
     ncells = 10
-    gg = GridFunctions.Grids.Grid(dd, ncells)
+    gg = GridFunctions.Grids.UniformGrid(dd, ncells)
     @test typeof(gg.ncells) <: Integer
     @test typeof(gg.npoints) <: Integer
     @test typeof(gg.domain) <: GridFunctions.Domains.Domain{<:AbstractFloat}
@@ -58,7 +58,7 @@ end
         L = 5
         dd = GridFunctions.Domains.Domain([0, L])
         ncells = 10
-        g = GridFunctions.Grids.Grid(dd, ncells)
+        g = GridFunctions.Grids.UniformGrid(dd, ncells)
         gg = convert(Rational{T}, g)
         @test typeof(gg.ncells) <: Integer
         @test typeof(gg.npoints) <: Integer
@@ -73,7 +73,7 @@ end
         L = 5
         dd = GridFunctions.Domains.Domain([0, L])
         ncells = 10
-        g = GridFunctions.Grids.Grid(dd, ncells)
+        g = GridFunctions.Grids.UniformGrid(dd, ncells)
         gg = convert(T, g)
         @test typeof(gg.ncells) <: Integer
         @test typeof(gg.npoints) <: Integer
@@ -86,7 +86,7 @@ end
     L = 5
     dd = GridFunctions.Domains.Domain([0, L])
     ncells = 5
-    g = GridFunctions.Grids.Grid(dd, ncells)
+    g = GridFunctions.Grids.UniformGrid(dd, ncells)
     gg = convert(Int64, g)
     @test typeof(gg.ncells) <: Integer
     @test typeof(gg.npoints) <: Integer
@@ -99,7 +99,7 @@ end
     L = 5
     dd = GridFunctions.Domains.Domain([0, L])
     ncells = 5
-    g = GridFunctions.Grids.Grid(dd, ncells)
+    g = GridFunctions.Grids.UniformGrid(dd, ncells)
     cfl = 0.5
     time_domain = GridFunctions.Domains.Domain([0, 2])
     time_grid = GridFunctions.Grids.TimeGrid_from_cfl(g, time_domain, cfl)

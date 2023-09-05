@@ -12,10 +12,9 @@ domain of the numerical grid.
 - dmin: the minimum of the domain
 - dmax: the maximum of the domain
 """
-struct Domain{T<:Real} <: AbstractDomain
+# interval domain -> chang to interval
+struct IntervalDomain{T<:Real} <: AbstractDomain
     domain::SVector{2,T}
-    dmin::T
-    dmax::T
 end
 
 ## Constructor overloading to calculate dims from domain array
@@ -28,7 +27,7 @@ function Domain(dom::AbstractVector{T})::Domain{T} where {T<:Real}
     @assert dom[1] < dom[2] || throw("Domain must be sorted from small to big.")
     dmin = min(dom[begin], dom[end])
     dmax = max(dom[begin], dom[end])
-    return Domain(SVector{2}(dom), dmin, dmax)
+    return Domain(SVector{2}(dom))
 end
 
 """
@@ -53,15 +52,37 @@ function Base.convert(::Type{T}, dom::Domain)::Domain{T} where {T<:Real}
     Domain(convert.(T, dom.domain))
 end
 
-function Base.show(io::IO, d::Domain)
-    dump(d)
-end
+# function Base.show(io::IO, d::Domain)
+#     # dump(d)
+#     # println("domain: $(d.domain)")
+# end
 
-function Base.show(io::IO, ::MIME"text/plain", d::Domain{T}) where {T}
-    println(Domain{T})
-    println("domain = $(typeof(d.domain)) $(d.domain)")
-end
+# function Base.show(io::IO, ::MIME"text/plain", d::Domain{T}) where {T}
+#     println(Domain{T})
+#     println("domain = $(typeof(d.domain)) $(d.domain)")
+# end
 
+# Implement the following
+# function print_interval(io::IO, domain::IntervalDomain{CT}) where {CT}
+#     print(
+#         io,
+#         fieldname(CT, 1),
+#         " ∈ [",
+#         Geometry.component(domain.coord_min, 1),
+#         ",",
+#         Geometry.component(domain.coord_max, 1),
+#         "] ",
+#     )
+#     if isperiodic(domain)
+#         print(io, "(periodic)")
+#     else
+#         print(io, domain.boundary_names)
+#     end
+# end
+# function Base.show(io::IO, domain::IntervalDomain)
+#     print(io, nameof(typeof(domain)), ": ")
+#     print_interval(io, domain)
+# end
 ## 3D
 struct Domain3D{T<:Real}
     domain::SVector{3,Domain{T}}

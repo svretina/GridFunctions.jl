@@ -81,7 +81,7 @@ for op in reductions
 end
 
 import Base.length
-length(g::Grids.Grid) = g.npoints
+length(g::Grids.UniformGrid1d) = g.npoints
 length(gf::Functions.GridFunction) = length(gf.x)
 
 import Base.Broadcast.broadcastable

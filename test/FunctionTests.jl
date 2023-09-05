@@ -44,7 +44,7 @@ end
 
 @testset "gf_tests_Grids" begin
     d = GridFunctions.Domains.Domain([0, 1])
-    x = GridFunctions.Grids.Grid(d, 10)
+    x = GridFunctions.Grids.UniformGrid(d, 10)
     f = sin
     @test GridFunctions.Functions.GridFunction(x, f).y == sin.(x.coords)
 
@@ -54,10 +54,7 @@ end
 end
 
 @testset "gf_tests_dimensions" begin
-    @test_throws DimensionMismatch GridFunctions.Functions.GridFunction([0,
-            1],
-        [0, 2,
-            3])
+    @test_throws DimensionMismatch GridFunctions.Functions.GridFunction([0, 1], [0, 2, 3])
 end
 
 @testset "gf_length" begin
@@ -72,16 +69,3 @@ end
     gf = GridFunctions.Functions.GridFunction(x, y)
     @test 2 * gf == 2 .* gf.y
 end
-
-
-
-# @testset "gf_tests_integrate" begin
-#     N = 10
-#     d = Domains.Domain([0, 10])
-#     x = Grids.Grid(d, N)
-#     a = ones(N + 1)
-#     b = GridFunctions.Functions.GridFunction(x, a)
-
-#     @test GridFunctions.integrate(a, x.spacing) == d.domain[end] - d.domain[begin]
-#     @test GridFunctions.integrate(b, x.spacing) == d.domain[end] - d.domain[begin]
-# end
