@@ -1,6 +1,5 @@
 module Base
 
-import ..Domains
 import ..Grids
 import ..Functions
 

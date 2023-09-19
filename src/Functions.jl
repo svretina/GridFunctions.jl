@@ -7,57 +7,41 @@ export GridFunction, coords
 
 abstract type AbstractFunction{T} end
 
-struct GridFunction{T<:Real} <: AbstractFunction{T}
+struct GridFunction{T<:Real,S<:Real} <: AbstractFunction{T}
     grid::Grids.AbstractGrid{T}
-    values::AbstractArray{T}
-    function GridFunction{T}(x::Grids.AbstractGrid{T}, y::AbstractArray{T}) where {T<:Real}
+    values::AbstractArray{S}
+    function GridFunction{T,S}(x::Grids.AbstractGrid{T}, y::AbstractArray{S}) where {T<:Real,S<:Real}
         Tuple(x.ncells) .+ 1 == size(y) || throw(DimensionMismatch("grid and values need to have same dimensions!"))
         return new(x, y)
     end
 end
 
-function GridFunction(x::Grids.AbstractGrid{T}, y::AbstractArray{T}) where {T<:Real}
-    return GridFunction{T}(x, y)
+function GridFunction(x::Grids.AbstractGrid{T}, y::AbstractArray{S}) where {T<:Real,S<:Real}
+    return GridFunction{T,S}(x, y)
 end
-
-
-# this fails!
-# I need to declare promotion rules for UniformGrid ( or AbstractGrid )
-function GridFunction(x::Grids.AbstractGrid{<:Real}, y::AbstractArray{<:Real})
-    return GridFunction(promote(x, y)...)
-end
-
 
 function Grids.coords(f::GridFunction)
     return Grids.coords(f.grid)
 end
 
-
-# this is too complicated but it is general for all dimensions
-# i don't know if its slow
-#
-# Allocation of values takes type from grid, but resulting values can have
-# different type!
-# e.g
-# grid can be int but a sin(x) function will give Float64 values
 function GridFunction(x::Grids.AbstractGrid{T}, f::Function) where {T<:Real}
     dimensions = Tuple(x.ncells) .+ 1
     values = Array{Float64}(undef, dimensions)
     grid_coords = collect(product((Grids.coords(x))...))
     for indices in CartesianIndices(dimensions)
-        values[indices] = f(grid_coords[indices]...)
+        values[indices] = f([grid_coords[indices]...])
     end
     return GridFunction(x, values)
 end
 
-function GridFunction!(vals::AbstractArray{T}, x::Grids.AbstractGrid{T}, f::Function) where {T<:Real}
+function GridFunction!(vals::AbstractArray{T}, x::Grids.AbstractGrid{S}, f::Function) where {T<:Real,S<:Real}
     dimensions = Tuple(x.ncells) .+ 1
     Tuple(x.ncells) .+ 1 == size(vals) || throw(DimensionMismatch("grid and values need to have same dimensions!"))
     grid_coords = collect(product((Grids.coords(x))...))
     for indices in CartesianIndices(dimensions)
-        values[indices] = f(grid_coords[indices]...)
+        vals[indices] = f([grid_coords[indices]...])
     end
-    return GridFunction(x, values)
+    return GridFunction(x, vals)
 end
 
 
