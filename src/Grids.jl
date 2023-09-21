@@ -12,18 +12,8 @@ struct UniformGrid1d{T<:Real} <: AbstractGrid{T}
     ncells::T
 end
 
-"""
-    UniformGrid1d(d::AbstractVector{T}, ncells::T) where {T<:Real}
-
-TBW
-"""
 function UniformGrid1d(d::AbstractVector{T}, ncells::T) where {T<:Real}
     return UniformGrid1d(SVector{2,T}(d), ncells)
-end
-
-import Base.length
-function Base.length(g::UniformGrid1d)
-    return g.ncells + 1
 end
 
 function spacing(xi::T, xn::T, ncells::Integer)::Real where {T<:Real}
@@ -38,7 +28,6 @@ function spacing(g::UniformGrid1d{T}) where {T<:Real}
     spacing(g.domain[1], g.domain[2], g.ncells)
 end
 
-# should this return collect(u)?
 function coords(ui::Real, uf::Real, ncells::Real)::AbstractArray{<:Real}
     du = spacing(ui, uf, ncells)
     ns = 0:1:ncells
@@ -61,19 +50,8 @@ struct UniformGrid{T<:Real} <: AbstractGrid{T}
     ncells::AbstractVector{<:Int}
 end
 
-import Base.eltype
-
-function Base.eltype(g::UniformGrid{T}) where {T<:Real}
-    return eltype(eltype(g.domain))
-end
-
 function coords(g::UniformGrid{<:Real})
     return coords.(g.domain, g.ncells)
-end
-
-import Base.ndims
-function Base.ndims(g::UniformGrid)
-    return length(g.ncells)
 end
 
 function UniformGrid(domains::AbstractVector{<:AbstractVector{T}}, ncells::T) where {T<:Real}
@@ -94,11 +72,6 @@ end
 
 function UniformGrid(domain::AbstractVector{T}, ncells::T) where {T<:Real}
     return UniformGrid1d(domain, ncells)
-end
-
-import Base.size
-function Base.size(g::UniformGrid)
-    return g.ncells .+ 1
 end
 
 end # end of module
