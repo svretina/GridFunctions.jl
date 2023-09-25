@@ -1,107 +1,89 @@
 using Test
 using GridFunctions
+using StaticArrays
 
 const ITypes = [Int32, Int64]
 const FTypes = [Float32, Float64]
 
-@testset "Grid_tests" begin
-    dd = GridFunctions.Domains.Domain([0, 1])
-    ncells = 10
-    gg = GridFunctions.Grids.UniformGrid(dd, ncells)
-    @test gg.domain == dd
-    @test length(gg) == ncells + 1
-    @test gg.ncells == ncells
-    @test gg.npoints == ncells + 1
-    @test gg.coords == 0:0.1:1
-    @test length(gg.coords) == ncells + 1
-    @test gg.spacing == 0.1
+@testset "helper funcs" begin
+    x = 0:0.5:5
+    @test spacing(x) == 0.5
+    @test coords(0, 1, 10) == 0:0.1:1
+    @test coords([0, 1], 10) == 0:0.1:1
 end
 
-@testset "Grid_test types" begin
-    L = 5
-    dd = GridFunctions.Domains.Domain([0, L])
-    ncells = 10
-    gg = GridFunctions.Grids.UniformGrid(dd, ncells)
-    @test typeof(gg.ncells) <: Integer
-    @test typeof(gg.npoints) <: Integer
-    @test typeof(gg.domain) <: GridFunctions.Domains.Domain{<:Integer}
-    @test typeof(gg.spacing) <: AbstractFloat
-    @test typeof(gg.coords) <: Vector{<:AbstractFloat}
-end
-
-@testset "Grid_test Rational type" begin
-    L = Rational(5)
-    dd = GridFunctions.Domains.Domain([0, L])
-    ncells = 10
-    gg = GridFunctions.Grids.UniformGrid(dd, ncells)
-    @test typeof(gg.ncells) <: Integer
-    @test typeof(gg.npoints) <: Integer
-    @test typeof(gg.domain) <: GridFunctions.Domains.Domain{<:Rational}
-    @test typeof(gg.spacing) <: Rational
-    @test typeof(gg.coords) <: Vector{<:Rational}
-end
-
-@testset "Grid_test float type" begin
-    L = 5.0
-    dd = GridFunctions.Domains.Domain([0, L])
-    ncells = 10
-    gg = GridFunctions.Grids.UniformGrid(dd, ncells)
-    @test typeof(gg.ncells) <: Integer
-    @test typeof(gg.npoints) <: Integer
-    @test typeof(gg.domain) <: GridFunctions.Domains.Domain{<:AbstractFloat}
-    @test typeof(gg.spacing) <: AbstractFloat
-    @test typeof(gg.coords) <: Vector{<:AbstractFloat}
-end
-
-@testset "Grid_tests_conversion Rational" begin
-    for T in ITypes
-        L = 5
-        dd = GridFunctions.Domains.Domain([0, L])
-        ncells = 10
-        g = GridFunctions.Grids.UniformGrid(dd, ncells)
-        gg = convert(Rational{T}, g)
-        @test typeof(gg.ncells) <: Integer
-        @test typeof(gg.npoints) <: Integer
-        @test typeof(gg.domain) <: GridFunctions.Domains.Domain{<:Rational}
-        @test typeof(gg.spacing) <: Rational
-        @test typeof(gg.coords) <: Vector{<:Rational}
-    end
-end
-
-@testset "Grid_tests_conversion Floats" begin
+@testset "UniformGrid1d_tests Floats" begin
     for T in FTypes
-        L = 5
-        dd = GridFunctions.Domains.Domain([0, L])
+        d = T[0, 1]
         ncells = 10
-        g = GridFunctions.Grids.UniformGrid(dd, ncells)
-        gg = convert(T, g)
-        @test typeof(gg.ncells) <: Integer
-        @test typeof(gg.npoints) <: Integer
-        @test typeof(gg.domain) <: GridFunctions.Domains.Domain{<:AbstractFloat}
-        @test typeof(gg.spacing) <: AbstractFloat
-        @test typeof(gg.coords) <: Vector{<:AbstractFloat}
+        g = GridFunctions.Grids.UniformGrid1d(d, ncells)
+        @test g.domain == d
+        @test g.ncells == ncells
+        @test coords(g) == collect(T, 0:0.1:1)
+        @test length(g) == ncells + 1
+        @test spacing(g) == T(0.1)
+        @test typeof(g.domain) <: SVector{2,T}
+        @test typeof(coords(g)) <: AbstractVector{<:AbstractFloat}
     end
 end
-@testset "Grid_tests_conversion2Int" begin
-    L = 5
-    dd = GridFunctions.Domains.Domain([0, L])
-    ncells = 5
-    g = GridFunctions.Grids.UniformGrid(dd, ncells)
-    gg = convert(Int64, g)
-    @test typeof(gg.ncells) <: Integer
-    @test typeof(gg.npoints) <: Integer
-    @test typeof(gg.domain) <: GridFunctions.Domains.Domain{<:Integer}
-    @test typeof(gg.spacing) <: AbstractFloat
-    @test typeof(gg.coords) <: Vector{<:AbstractFloat}
+
+@testset "UniformGrid1d_tests Ints" begin
+    for T in ITypes
+        d = T[0, 1]
+        ncells = 10
+        g = GridFunctions.Grids.UniformGrid1d(d, ncells)
+        @test g.domain == d
+        @test g.ncells == ncells
+        @test coords(g) == 0:0.1:1
+        @test length(g) == ncells + 1
+        @test spacing(g) == 0.1
+        @test typeof(g.domain) <: SVector{2,T}
+        @test typeof(coords(g)) <: AbstractVector{<:AbstractFloat}
+    end
 end
 
-@testset "Grid_test_CFL" begin
-    L = 5
-    dd = GridFunctions.Domains.Domain([0, L])
-    ncells = 5
-    g = GridFunctions.Grids.UniformGrid(dd, ncells)
-    cfl = 0.5
-    time_domain = GridFunctions.Domains.Domain([0, 2])
-    time_grid = GridFunctions.Grids.TimeGrid_from_cfl(g, time_domain, cfl)
-    @test time_grid.spacing / g.spacing == cfl
+@testset "UniformGrid 1d fallback" begin
+    g = GridFunctions.Grids.UniformGrid([0, 1], 10)
+    @test typeof(g) <: GridFunctions.Grids.UniformGrid1d
+end
+
+@testset "UniformGrid Floats" begin
+    for T in FTypes
+        d = [T[0, 1], T[2, 3]]
+        ncells = [10, 10]
+        g = GridFunctions.Grids.UniformGrid(d, ncells)
+        gcoords = [T[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+            T[2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0]]
+        @test coords(g) == gcoords
+    end
+end
+@testset "UniformGrid Ints" begin
+    for T in ITypes
+        d = [T[0, 1], T[2, 3]]
+        ncells = [10, 10]
+        g = GridFunctions.Grids.UniformGrid(d, ncells)
+        gcoords = [[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+            [2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0]]
+        @test coords(g) == gcoords
+    end
+end
+
+@testset "UniformGrid 1st Constructor" begin
+    for T in [ITypes..., FTypes...]
+        d = [T[0, 1], T[2, 3]]
+        ncells = 10
+        g = GridFunctions.Grids.UniformGrid(d, ncells)
+        @test g.ncells == @SVector [10, 10]
+    end
+end
+
+@testset "UniformGrid 2nd Constructor" begin
+    for i in 1:3
+        for T in [ITypes..., FTypes...]
+            d = T[0, 1]
+            ncells = 10
+            g = GridFunctions.Grids.UniformGrid(d, ncells, i)
+            @test g.ncells == 10 * @SVector ones(Int64, i)
+        end
+    end
 end

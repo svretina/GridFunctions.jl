@@ -28,10 +28,7 @@ function GridFunction(x::Grids.UniformGrid{T}, f::Function) where {T<:Real}
     npoints = Tuple(x.ncells) .+ 1
     values = Array{Float64}(undef, npoints)
     grid_coords = collect(product((Grids.coords(x))...))
-
     for indices in CartesianIndices(npoints)
-        @show [grid_coords[indices]...]
-        @show indices
         values[indices] = f([grid_coords[indices]...])
     end
     return GridFunction(x, values)

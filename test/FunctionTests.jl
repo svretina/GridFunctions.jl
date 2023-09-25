@@ -1,71 +1,43 @@
 using Test
 using GridFunctions
 
-@testset "gf_tests_arrays" begin
-    x = [0, 1, 2, 3, 4]
-    y = [0, 1, 2, 3, 4]
-    @test GridFunctions.Functions.GridFunction(x, y).x == x
-    @test GridFunctions.Functions.GridFunction(x, y).y == y
+const ITypes = [Int32, Int64]
+const FTypes = [Float32, Float64]
+const RTypes = [ITypes..., FTypes...]
 
-    x = [0.0, 1.0, 2.0, 3.0, 4.0]
-    y = [0.0, 1.0, 2.0, 3.0, 4.0]
-    @test GridFunctions.Functions.GridFunction(x, y).x == x
-    @test GridFunctions.Functions.GridFunction(x, y).y == y
+const d = [0, 1]
+const n = 10
+
+@testset "Default constructor" begin
+    for T in RTypes
+        g = UniformGrid(T.(d), n)
+        vals = coords(g)
+        f = GridFunction(g, vals)
+        @test f.grid == g
+        @test f.values == vals
+    end
 end
 
-@testset "gf_tests_stepranges" begin
-    x = 0:1:4
-    y = [0, 1, 2, 3, 4]
-    @test GridFunctions.Functions.GridFunction(collect(x), y).x == x
-    @test GridFunctions.Functions.GridFunction(collect(x), y).y == y
-
-    x = 0:0.1:0.4
-    y = [0.0, 1.0, 2.0, 3.0, 4.0]
-    @test GridFunctions.Functions.GridFunction(collect(x), y).x == x
-    @test GridFunctions.Functions.GridFunction(collect(x), y).y == y
+@testset "Default constructor" begin
+    g = UniformGrid(d, n)
+    vals = 1:1:100
+    @test_throws DimensionMismatch GridFunction(g, vals)
 end
 
-@testset "gf_tests_functions" begin
-    x = 0:1:10
-    f = sin
-    @test GridFunctions.Functions.GridFunction(collect(x), f).x == x
-    @test GridFunctions.Functions.GridFunction(collect(x), f).y == sin.(x)
-
-    x = 0:0.1:1
-    y = sin
-    @test GridFunctions.Functions.GridFunction(collect(x), y).x == x
-    @test GridFunctions.Functions.GridFunction(collect(x), y).y == sin.(x)
-
-    x = [0, 1, 2, 3, 4, 5]
-    y = sin
-    @test GridFunctions.Functions.GridFunction(x, y).x == x
-    @test GridFunctions.Functions.GridFunction(x, y).y == sin.(x)
+@testset "Coords" begin
+    g = UniformGrid(d, n)
+    f = GridFunction(g, coords(g))
+    @test coords(g) == coords(g)
 end
 
-@testset "gf_tests_Grids" begin
-    d = GridFunctions.Domains.Domain([0, 1])
-    x = GridFunctions.Grids.UniformGrid(d, 10)
-    f = sin
-    @test GridFunctions.Functions.GridFunction(x, f).y == sin.(x.coords)
-
-    y = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    @test GridFunctions.Functions.GridFunction(x, y).y == y
-    @test GridFunctions.Functions.GridFunction(x, y).x == x.coords
+@testset "Analytic Function provided" begin
+    g = UniformGrid(d, n)
+    f = GridFunction(g, sin)
+    @test f.values == sin(g)
 end
 
-@testset "gf_tests_dimensions" begin
-    @test_throws DimensionMismatch GridFunctions.Functions.GridFunction([0, 1], [0, 2, 3])
-end
-
-@testset "gf_length" begin
-    x = [0, 1, 2, 3]
-    y = [2, 3, 4, 5]
-    @test length(GridFunctions.Functions.GridFunction(x, y)) == length(x)
-end
-
-@testset "gf_broadcastable" begin
-    x = [0, 1, 2, 3]
-    y = [2, 3, 4, 5]
-    gf = GridFunctions.Functions.GridFunction(x, y)
-    @test 2 * gf == 2 .* gf.y
+@testset "1d grid special case" begin
+    g = UniformGrid(d, n)
+    f = GridFunction(g, sin)
+    @test f.values == sin(g)
 end

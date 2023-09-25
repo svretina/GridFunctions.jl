@@ -34,9 +34,23 @@ function ndims(g::Grids.UniformGrid)
     return length(g.ncells)
 end
 
+import Base.ndims
+function ndims(g::Grids.UniformGrid1d)
+    return 1
+end
+
 import Base.size
 function size(g::Grids.UniformGrid)
     return Tuple(g.ncells .+ 1)
+end
+
+import Base.iterate
+function iterate(g::Grids.AbstractGrid)
+    return iterate(Grids.coords(g))
+end
+
+function iterate(g::Grids.AbstractGrid, state)
+    return iterate(Grids.coords(g), state)
 end
 
 ## GridFunctions
@@ -104,6 +118,13 @@ for op in math_functions
     @eval import Base.$op
     @eval function $op(gf::Functions.GridFunction)
         Functions.GridFunction(gf.grid, @. $op(gf.values))
+    end
+end
+
+for op in math_functions
+    @eval import Base.$op
+    @eval function $op(g::Grids.AbstractGrid)
+        $op.(Grids.coords(g))
     end
 end
 
