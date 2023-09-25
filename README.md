@@ -5,6 +5,3 @@
 [![Build Status](https://github.com/svretina/GridFunctions.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/svretina/GridFunctions.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Coverage](https://codecov.io/gh/svretina/GridFunctions.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/svretina/GridFunctions.jl)
 
-## TODO
-1. convert the types to d-dimensional
-2. add evaluation of functions with a interpolation module
