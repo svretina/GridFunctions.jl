@@ -35,9 +35,8 @@ end
     f = GridFunction(g, x -> sin(x[1]) * cos(x[2]) * sin(x[3]))
     x = coords(g)
     vals = similar(f.values)
-    for indx in CartesianIndices(x)
-        i, j, k = indx
-        vals[i, j, k] = sin(x[i, j, k]) * cos(x[i, j, k]) * sin(x[i, j, k])
+    for i in 1:(n+1), j in 1:(n+1), k in 1:(n+1)
+        vals[i, j, k] = sin(x[1][i]) * cos(x[2][j]) * sin(x[3][k])
     end
     @test f.values == vals
 end
