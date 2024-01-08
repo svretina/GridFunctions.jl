@@ -4,7 +4,6 @@ authors = ["Stamatis Vretinaris"]
 version = "1.0.0-DEV"
 
 [deps]
-IterTools = "c8e1da08-722c-5040-9ed9-7db0dc04731e"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"

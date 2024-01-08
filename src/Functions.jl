@@ -1,7 +1,7 @@
 module Functions
 
 import ..Grids
-import IterTools: product
+import Base.Iterators
 
 export GridFunction, coords
 
@@ -24,14 +24,14 @@ function Grids.coords(f::GridFunction)
     return Grids.coords(f.grid)
 end
 
-function GridFunction(x::Grids.UniformGrid{T}, f::Function) where {T<:Real}
-    npoints = Tuple(x.ncells) .+ 1
+function GridFunction(g::Grids.UniformGrid{T}, f::Function) where {T<:Real}
+    npoints = Tuple(g.ncells) .+ 1
     values = Array{Float64}(undef, npoints)
-    grid_coords = collect(product((Grids.coords(x))...))
+    grid_coords = collect(Base.Iterators.product((Grids.coords(g))...))
     for indices in CartesianIndices(npoints)
         values[indices] = f([grid_coords[indices]...])
     end
-    return GridFunction(x, values)
+    return GridFunction(g, values)
 end
 
 

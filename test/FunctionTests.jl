@@ -31,9 +31,15 @@ end
 end
 
 @testset "Analytic Function provided" begin
-    g = UniformGrid(d, n)
-    f = GridFunction(g, sin)
-    @test f.values == sin(g)
+    g = UniformGrid(d, n, 3)
+    f = GridFunction(g, x -> sin(x[1]) * cos(x[2]) * sin(x[3]))
+    x = coords(g)
+    vals = similar(f.values)
+    for indx in CartesianIndices(x)
+        i, j, k = indx
+        vals[i, j, k] = sin(x[i, j, k]) * cos(x[i, j, k]) * sin(x[i, j, k])
+    end
+    @test f.values == vals
 end
 
 @testset "1d grid special case" begin
