@@ -11,3 +11,6 @@ end
 @safetestset "Functions.jl" begin
     include("FunctionTests.jl")
 end
+@safetestset "BaseTests.jl" begin
+    include("BaseTests.jl")
+end
