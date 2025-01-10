@@ -2,7 +2,7 @@ module Functions
 
 import ..Grids
 import Base.Iterators
-import Base.getindex
+import Base.getindex, Base.setindex!
 
 export GridFunction, coords
 
@@ -54,5 +54,12 @@ function Base.getindex(f::GridFunction, i)
         return f.values[i]
     end
 end
+
+
+function Base.setindex!(f::GridFunction, x, i)
+    f.values[i] = x
+    return nothing
+end
+
 
 end #end of module
