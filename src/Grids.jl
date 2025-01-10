@@ -9,7 +9,7 @@ abstract type AbstractGrid{T} end
 
 struct UniformGrid1d{T<:Real} <: AbstractGrid{T}
     domain::SVector{2,T}
-    ncells::Int
+    ncells::Int64
 end
 
 function UniformGrid1d(d::AbstractVector{T}, ncells::Int) where {T<:Real}
