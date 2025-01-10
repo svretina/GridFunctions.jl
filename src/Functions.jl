@@ -43,10 +43,10 @@ end
 function Base.getindex(f::GridFunction, i)
     if f.periodic
         N = f.grid.ncells + 1
-        if i > N
-            return f.values[i-N]
-        elseif i < 1
-            return f.values[i+N]
+        if i .> N
+            return f.values[i.-N]
+        elseif i .< 1
+            return f.values[i.+N]
         else
             return f.values[i]
         end
@@ -57,7 +57,7 @@ end
 
 
 function Base.setindex!(f::GridFunction, x, i)
-    f.values[i] = x
+    f.values[i] .= x
     return nothing
 end
 
