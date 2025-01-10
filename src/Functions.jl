@@ -43,22 +43,44 @@ end
 function Base.getindex(f::GridFunction, i)
     if f.periodic
         N = f.grid.ncells + 1
-        if i .> N
+        if all(i .> N)
             return f.values[i.-N]
-        elseif i .< 1
+        elseif all(i .< 1)
             return f.values[i.+N]
-        else
+        elseif all(1 .< i .< N)
             return f.values[i]
+        else
+            throw("Range can only be positive numbers! You provided $i")
         end
     else
         return f.values[i]
     end
 end
 
-
-function Base.setindex!(f::GridFunction, x, i)
-    f.values[i] .= x
+function Base.setindex!(f::GridFunction, x, i::Int)
+    if f.periodic
+        N = f.grid.ncells + 1
+        if i > N
+            f.values[i-N] = x
+        elseif i < 1
+            f.values[i+N] = x
+        else
+            f.values[i] = x
+        end
+    else
+        f.values[i] = x
+    end
     return nothing
+end
+
+function Base.setindex!(f::GridFunction, x, i::AbstractVector)
+    for ii in i
+        Base.setindex!(f, x, ii)
+    end
+end
+
+function Base.lastindex(f::GridFunction)
+    return f.grid.ncells + 1
 end
 
 
