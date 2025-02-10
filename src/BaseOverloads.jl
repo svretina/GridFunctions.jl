@@ -3,7 +3,6 @@ module BaseOverloads
 import ..Grids
 import ..Functions
 
-
 ## Grids
 import Base.==
 function ==(g1::Grids.AbstractGrid, g2::Grids.AbstractGrid)
@@ -11,36 +10,36 @@ function ==(g1::Grids.AbstractGrid, g2::Grids.AbstractGrid)
 end
 
 import Base.length
-function length(g::Grids.UniformGrid1d)
+function length(g::Grids.UniformGrid1D)
     return g.ncells + 1
 end
 
 import Base.size
-function size(g::Grids.UniformGrid1d)
+function size(g::Grids.UniformGrid1D)
     return (g.ncells .+ 1,)
 end
 
 import Base.eltype
-function eltype(g::Grids.UniformGrid1d{T}) where {T<:Real}
-    return eltype(g.domain)
-end
-
-function eltype(g::Grids.UniformGrid{T}) where {T<:Real}
+function eltype(g::Grids.AbstractGrid{T,N}) where {T<:Real,N}
     return eltype(eltype(g.domain))
 end
 
 import Base.ndims
-function ndims(g::Grids.UniformGrid)
+function ndims(g::Grids.AbstractGrid{T,N}) where {T,N}
     return length(g.ncells)
 end
 
 import Base.ndims
-function ndims(g::Grids.UniformGrid1d)
+function ndims(g::Grids.AbstractCollocatedGrid{T,1}) where {T}
     return 1
 end
 
 import Base.size
-function size(g::Grids.UniformGrid)
+function size(g::Grids.AbstractStaggeredGrid{T,N}) where {T,N}
+    return Tuple(g.ncells)
+end
+
+function size(g::Grids.AbstractCollocatedGrid{T,N}) where {T,N}
     return Tuple(g.ncells .+ 1)
 end
 
@@ -56,17 +55,17 @@ end
 ## GridFunctions
 import Base.isapprox
 function isapprox(gf::Functions.GridFunction, number; atol::Real=0, rtol::Real=0,
-    nans::Bool=false, norm::Function=abs)
+                  nans::Bool=false, norm::Function=abs)
     return all(isapprox.(gf.values, number; atol, rtol, nans, norm))
 end
 
 function isapprox(number, gf::Functions.GridFunction; atol::Real=0, rtol::Real=0,
-    nans::Bool=false, norm::Function=abs)
+                  nans::Bool=false, norm::Function=abs)
     return all(isapprox.(number, gf.values; atol, rtol, nans, norm))
 end
 
 function isapprox(gf1::Functions.GridFunction, gf2::Functions.GridFunction;
-    atol::Real=0, rtol::Real=0, nans::Bool=false, norm::Function=abs)
+                  atol::Real=0, rtol::Real=0, nans::Bool=false, norm::Function=abs)
     gf1.grid == gf2.grid || throw(DimensionMismatch("x's are not the same"))
     return all(isapprox.(gf1.values, gf2.values; atol, rtol, nans, norm))
 end
@@ -110,9 +109,9 @@ for op in logical_operators
 end
 
 math_functions = [:sin, :cos, :tan, :asin, :acos, :atan, :sinh, :cosh, :tanh, :asinh,
-    :acosh, :atanh, :sec, :csc, :cot, :asec, :acsc, :acot, :sech, :csch,
-    :coth, :asech, :acsch, :acoth, :sinpi, :cospi, :sinc, :cosc, :log, :log2,
-    :log10, :exp, :exp2, :abs, :abs2, :sqrt, :cbrt, :inv, :+, :-]
+                  :acosh, :atanh, :sec, :csc, :cot, :asec, :acsc, :acot, :sech, :csch,
+                  :coth, :asech, :acsch, :acoth, :sinpi, :cospi, :sinc, :cosc, :log, :log2,
+                  :log10, :exp, :exp2, :abs, :abs2, :sqrt, :cbrt, :inv, :+, :-]
 
 for op in math_functions
     @eval import Base.$op
@@ -137,15 +136,14 @@ end
 import Base.Broadcast.broadcastable
 broadcastable(gf::Functions.GridFunction) = broadcastable(gf.values)
 
-
 function Base.getindex(f::Functions.GridFunction, i)
     if f.periodic
         N = f.grid.ncells + 1
         if all(i .> N)
-            return f.values[i.-N]
+            return f.values[i .- N]
         elseif all(i .< 1)
-            return f.values[i.+N]
-        elseif all(1 .< i .< N)
+            return f.values[i .+ N]
+        elseif all(1 .<= i .<= N)
             return f.values[i]
         else
             throw("Range can only be positive numbers! You provided $i")
@@ -155,13 +153,17 @@ function Base.getindex(f::Functions.GridFunction, i)
     end
 end
 
+function Base.size(f::Functions.GridFunction)
+    return size(f.grid)
+end
+
 function Base.setindex!(f::Functions.GridFunction, x, i::Int)
     if f.periodic
         N = f.grid.ncells + 1
         if i > N
-            f.values[i-N] = x
+            f.values[i - N] = x
         elseif i < 1
-            f.values[i+N] = x
+            f.values[i + N] = x
         else
             f.values[i] = x
         end
@@ -181,6 +183,7 @@ function Base.lastindex(f::Functions.GridFunction)
     return f.grid.ncells + 1
 end
 
+# Base.convert(::Type{T}, g::Grids.AbstractGrid{T,N}) where {T,N} =
 
 # Base.convert(::Type{T}, g::Grids.AbstractGrid{T}) where {T} = g
 # Base.convert(::Type{T}, g::Grids.AbstractGrid{S}) where {T<:Real,S<:Real} = g.domain = convert.(T, g.domain)
