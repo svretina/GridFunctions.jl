@@ -13,12 +13,13 @@ makedocs(;
         canonical="https://svretina.github.io/GridFunctions.jl",
         edit_link="master",
         assets=String[],
+        collapselevel=1,
     ),
     pages=[
         "Home" => "index.md",
         "Manual" => [
             "Theory" => "theory.md",
-            "Examples" => "examples.md",
+            "Tutorials" => "examples.md",
         ],
         "Library" => [
             "API Reference" => "api.md",
