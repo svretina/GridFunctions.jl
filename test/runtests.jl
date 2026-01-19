@@ -14,3 +14,7 @@ end
 @safetestset "BaseTests.jl" begin
     include("BaseTests.jl")
 end
+
+@safetestset "CoverageTests.jl" begin
+    include("CoverageTests.jl")
+end

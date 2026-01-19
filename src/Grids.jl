@@ -36,7 +36,10 @@ struct RectilinearGrid{T<:Real, N, Shifts, Topology<:AbstractBoundaryCondition} 
 end
 
 # Accessors
+# Accessors
 is_staggered(::RectilinearGrid{T,N,Shifts}, dim::Int) where {T,N,Shifts} = Shifts[dim]
+is_staggered(::UniformGrid1D, dim::Int) = false
+is_staggered(::UniformStaggeredGrid1D, dim::Int) = true
 
 
 # Aliases for 2D/3D convenience
@@ -76,6 +79,10 @@ end
 # 1. coords(g) -> Tuple of ranges
 @inline function coords(g::UniformGrid1D{T}) where {T}
     return collect(range_coords(g.domain[1], g.domain[2], g.ncells, false))
+end
+
+@inline function coords(g::UniformStaggeredGrid1D{T}) where {T}
+    return collect(range_coords(g.domain[1], g.domain[2], g.ncells, true))
 end
 
 @inline function coords(g::RectilinearGrid{T,N,Shifts}) where {T,N,Shifts}
@@ -164,6 +171,13 @@ end
 coords(g::UniformGrid1D{<:Real}) = coords(g.domain, g.ncells)
 
 # Size overload for Rectilinear
+# Legacy Size/Length
+Base.length(g::UniformGrid1D) = g.ncells + 1
+Base.size(g::UniformGrid1D) = (g.ncells + 1,)
+
+Base.length(g::UniformStaggeredGrid1D) = g.ncells
+Base.size(g::UniformStaggeredGrid1D) = (g.ncells,)
+
 function Base.size(g::RectilinearGrid{T,N,Shifts}) where {T,N,Shifts}
     return ntuple(i -> Shifts[i] ? g.ncells[i] : g.ncells[i] + 1, Val(N))
 end

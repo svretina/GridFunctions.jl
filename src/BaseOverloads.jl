@@ -9,15 +9,7 @@ function ==(g1::Grids.AbstractGrid, g2::Grids.AbstractGrid)
     return all((g1.domain == g2.domain, g1.ncells == g2.ncells))
 end
 
-import Base.length
-function length(g::Grids.UniformGrid1D)
-    return g.ncells + 1
-end
 
-import Base.size
-function size(g::Grids.UniformGrid1D)
-    return (g.ncells .+ 1,)
-end
 
 import Base.eltype
 function eltype(g::Grids.AbstractGrid{T,N}) where {T<:Real,N}
