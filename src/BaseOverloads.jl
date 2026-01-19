@@ -29,19 +29,12 @@ function ndims(g::Grids.AbstractGrid{T,N}) where {T,N}
     return length(g.ncells)
 end
 
-import Base.ndims
-function ndims(g::Grids.AbstractCollocatedGrid{T,1}) where {T}
-    return 1
-end
+# Removed redundant ndims(AbstractCollocatedGrid)
 
 import Base.size
-function size(g::Grids.AbstractStaggeredGrid{T,N}) where {T,N}
-    return Tuple(g.ncells)
-end
+# Size now handled by specific struct implementations in Grids.jl (RectilinearGrid)
+# and for UniformGrid1D below.
 
-function size(g::Grids.AbstractCollocatedGrid{T,N}) where {T,N}
-    return Tuple(g.ncells .+ 1)
-end
 
 import Base.iterate
 function iterate(g::Grids.AbstractGrid)
@@ -54,12 +47,12 @@ end
 
 ## GridFunctions
 import Base.isapprox
-function isapprox(gf::Functions.GridFunction, number; atol::Real=0, rtol::Real=0,
+function isapprox(gf::Functions.GridFunction, number::Number; atol::Real=0, rtol::Real=0,
                   nans::Bool=false, norm::Function=abs)
     return all(isapprox.(gf.values, number; atol, rtol, nans, norm))
 end
 
-function isapprox(number, gf::Functions.GridFunction; atol::Real=0, rtol::Real=0,
+function isapprox(number::Number, gf::Functions.GridFunction; atol::Real=0, rtol::Real=0,
                   nans::Bool=false, norm::Function=abs)
     return all(isapprox.(number, gf.values; atol, rtol, nans, norm))
 end
@@ -73,11 +66,11 @@ end
 math_operators = [:+, :-, :*, :/, :^]
 for op in math_operators
     @eval import Base.$op
-    @eval function $op(gf::Functions.GridFunction, number)
+    @eval function $op(gf::Functions.GridFunction, number::Number)
         Functions.GridFunction(gf.grid, @. $op(gf.values, number))
     end
 
-    @eval function $op(number, gf::Functions.GridFunction)
+    @eval function $op(number::Number, gf::Functions.GridFunction)
         Functions.GridFunction(gf.grid, @. $op(number, gf.values))
     end
 
@@ -92,11 +85,11 @@ end
 logical_operators = [:<, :(==), :<=]
 for op in logical_operators
     @eval import Base.$op
-    @eval function $op(gf::Functions.GridFunction, number)
+    @eval function $op(gf::Functions.GridFunction, number::Number)
         all(@. $op(gf.values, number))
     end
 
-    @eval function $op(number, gf::Functions.GridFunction)
+    @eval function $op(number::Number, gf::Functions.GridFunction)
         all(@. $op(number, gf.values))
     end
 
@@ -136,51 +129,80 @@ end
 import Base.Broadcast.broadcastable
 broadcastable(gf::Functions.GridFunction) = broadcastable(gf.values)
 
-function Base.getindex(f::Functions.GridFunction, i)
-    if f.periodic
-        N = f.grid.ncells + 1
-        if all(i .> N)
-            return f.values[i .- N]
-        elseif all(i .< 1)
-            return f.values[i .+ N]
-        elseif all(1 .<= i .<= N)
-            return f.values[i]
-        else
-            throw("Range can only be positive numbers! You provided $i")
-        end
-    else
-        return f.values[i]
-    end
+
+# -----------------------------------------------------------
+# Indexing
+# -----------------------------------------------------------
+
+# Helper to wrap indices for Periodic
+@inline function wrap_index(i::Int, n::Int)
+    return mod1(i, n)
+end
+
+# 1. NonPeriodic: Direct access (let Array handle bounds checks)
+@inline function Base.getindex(f::Functions.GridFunction{T,N,<:Any,<:Any,Grids.NonPeriodic}, I::Vararg{Int, N}) where {T,N}
+    @boundscheck checkbounds(f.values, I...)
+    @inbounds return f.values[I...]
+end
+
+@inline function Base.setindex!(f::Functions.GridFunction{T,N,<:Any,<:Any,Grids.NonPeriodic}, v, I::Vararg{Int, N}) where {T,N}
+    @boundscheck checkbounds(f.values, I...)
+    @inbounds f.values[I...] = v
+end
+
+# 2. Periodic: Wrap indices
+@inline function Base.getindex(f::Functions.GridFunction{T,N,<:Any,<:Any,Grids.Periodic}, I::Vararg{Int, N}) where {T,N}
+    sz = size(f.values)
+    return f.values[map(wrap_index, I, sz)...]
+end
+
+@inline function Base.setindex!(f::Functions.GridFunction{T,N,<:Any,<:Any,Grids.Periodic}, v, I::Vararg{Int, N}) where {T,N}
+    sz = size(f.values)
+    f.values[map(wrap_index, I, sz)...] = v
+end
+
+# 3. Linear Indexing (Forward to cartesian if possible, or just linear access)
+# For Periodic linear indexing in ND, it's ambiguous/complex to wrap correctly unless we convert to Cartesian.
+# We will support linear indexing as direct access (no wrapping) for now, or assume 1D.
+# If N=1, linear IS cartesian.
+@inline function Base.getindex(f::Functions.GridFunction{T,1,<:Any,<:Any,Grids.Periodic}, i::Int) where {T}
+    sz = length(f.values)
+    return f.values[wrap_index(i, sz)]
+end
+
+@inline function Base.setindex!(f::Functions.GridFunction{T,1,<:Any,<:Any,Grids.Periodic}, v, i::Int) where {T}
+    sz = length(f.values)
+    f.values[wrap_index(i, sz)] = v
+end
+
+@inline function Base.getindex(f::Functions.GridFunction{T,1,<:Any,<:Any,Grids.NonPeriodic}, i::Int) where {T}
+    return f.values[i]
+end
+
+@inline function Base.setindex!(f::Functions.GridFunction{T,1,<:Any,<:Any,Grids.NonPeriodic}, v, i::Int) where {T}
+    f.values[i] = v
+end
+
+# Fallback for linear indexing on ND arrays (Non-wrapping behavior for performance/simplicity)
+# Users should use cartesian indexing f[i, j] for physics logic.
+@inline function Base.getindex(f::Functions.GridFunction, i::Int)
+    return f.values[i]
+end
+
+@inline function Base.setindex!(f::Functions.GridFunction, v, i::Int)
+    f.values[i] = v
 end
 
 function Base.size(f::Functions.GridFunction)
-    return size(f.grid)
-end
-
-function Base.setindex!(f::Functions.GridFunction, x, i::Int)
-    if f.periodic
-        N = f.grid.ncells + 1
-        if i > N
-            f.values[i - N] = x
-        elseif i < 1
-            f.values[i + N] = x
-        else
-            f.values[i] = x
-        end
-    else
-        f.values[i] = x
-    end
-    return nothing
-end
-
-function Base.setindex!(f::Functions.GridFunction, x, i::AbstractVector)
-    for ii in i
-        Base.setindex!(f, x, ii)
-    end
+    # Use the grid size, which defines the "logical" size.
+    # For NonPeriodic, it's ncells+1. For Periodic, it might be interpreted differently
+    # but the implementation of GridFunction values usually stores ncells+1 points for convenience?
+    # Actually, GridFunction wraps `values`. `values` has the true size.
+    return size(f.values)
 end
 
 function Base.lastindex(f::Functions.GridFunction)
-    return f.grid.ncells + 1
+    return length(f.values)
 end
 
 # Base.convert(::Type{T}, g::Grids.AbstractGrid{T,N}) where {T,N} =

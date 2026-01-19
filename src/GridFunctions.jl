@@ -9,5 +9,7 @@ include("BaseOverloads.jl")
 
 @reexport using .Grids
 @reexport using .Functions
+include("Operators.jl")
+@reexport using .Operators
 
 end # end of module

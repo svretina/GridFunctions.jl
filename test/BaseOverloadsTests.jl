@@ -8,33 +8,33 @@ const RTypes = [ITypes..., FTypes...]
 const d = [0, 1]
 const n = 10
 
-@testset "Identity UniformGrid1d" begin
+@testset "Identity UniformGrid1D" begin
     for T in RTypes
-        g1 = GridFunctions.Grids.UniformGrid1d(T.(d), n)
-        g2 = GridFunctions.Grids.UniformGrid1d(T.(d), n)
+        g1 = GridFunctions.Grids.UniformGrid1D(T.(d), n)
+        g2 = GridFunctions.Grids.UniformGrid1D(T.(d), n)
         @test g1 == g2
     end
 end
 
-@testset "Base.length(UniformGrid1d)" begin
+@testset "Base.length(UniformGrid1D)" begin
     for T in RTypes
-        g = GridFunctions.Grids.UniformGrid1d(T.(d), n)
+        g = GridFunctions.Grids.UniformGrid1D(T.(d), n)
         @test length(g) == g.ncells + 1
         @test length(g) == length(coords(g))
     end
 end
 
-@testset "Base.size(UniformGrid1d)" begin
+@testset "Base.size(UniformGrid1D)" begin
     for T in RTypes
-        g = GridFunctions.Grids.UniformGrid1d(T.(d), n)
+        g = GridFunctions.Grids.UniformGrid1D(T.(d), n)
         @test size(g) == (g.ncells + 1,)
         @test size(g) == size(coords(g))
     end
 end
 
-@testset "Base.eltype(UniformGrid1d)" begin
+@testset "Base.eltype(UniformGrid1D)" begin
     for T in RTypes
-        g = GridFunctions.Grids.UniformGrid1d(T.(d), n)
+        g = GridFunctions.Grids.UniformGrid1D(T.(d), n)
         @test eltype(g) == T
     end
 end
@@ -48,9 +48,9 @@ end
     end
 end
 
-@testset "Base.ndims(UniformGrid1d)" begin
+@testset "Base.ndims(UniformGrid1D)" begin
     for T in RTypes
-        g = GridFunctions.Grids.UniformGrid1d(T.(d), n)
+        g = GridFunctions.Grids.UniformGrid1D(T.(d), n)
         @test ndims(g) == 1
     end
 end
